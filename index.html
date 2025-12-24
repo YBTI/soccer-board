@@ -13,104 +13,88 @@
             --accent: #2196F3;
             --accent-dark: #1976D2;
             --danger: #FF5722;
+            --text-main: #333;
         }
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 10px;
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
+            margin: 0; padding: 10px;
+            background-color: #f0f2f5; color: var(--text-main);
+            display: flex; flex-direction: column; height: 100vh; box-sizing: border-box;
         }
-        h1 { margin: 5px 0 15px 0; font-size: 1.2rem; text-align: center; }
+        h1 { margin: 5px 0 10px 0; font-size: 1.1rem; text-align: center; }
 
-        /* レイアウト (PCは横並び、スマホは縦並び) */
-        .container {
-            display: flex;
-            gap: 15px;
-            flex-grow: 1;
-            overflow: hidden; /* スクロール制御 */
-        }
+        .container { display: flex; gap: 15px; flex-grow: 1; overflow: hidden; }
         @media (max-width: 768px) {
             .container { flex-direction: column-reverse; height: auto; overflow: visible; }
             body { height: auto; overflow-y: auto; }
-            .sidebar { max-height: 400px; } /* スマホでのリストの高さ制限 */
+            .sidebar { max-height: none; }
         }
 
         /* サイドバー */
         .sidebar {
-            flex: 1;
-            min-width: 250px;
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
+            flex: 1; min-width: 250px;
+            background: white; padding: 15px;
+            border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
         }
 
-        h3 { margin: 15px 0 10px 0; font-size: 1rem; color: #333; border-bottom: 2px solid #eee; padding-bottom: 5px;}
+        h3 { margin: 15px 0 8px 0; font-size: 0.95rem; border-bottom: 2px solid #eee; padding-bottom: 5px;}
         .form-group { margin-bottom: 10px; }
         label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.85rem; color: #555;}
         input, select {
             width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px;
         }
-        button {
-            width: 100%; padding: 12px; background-color: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s;
+        
+        /* ポジション選択ボタン群 */
+        .pos-selector { display: flex; gap: 5px; margin-bottom: 10px; }
+        .pos-checkbox { display: none; } /* 本物のチェックボックスは隠す */
+        .pos-label {
+            flex: 1; text-align: center; padding: 8px 2px;
+            border: 1px solid #ddd; border-radius: 4px;
+            font-size: 0.8rem; cursor: pointer; background: #f9f9f9; user-select: none;
         }
-        button:hover { background-color: var(--accent-dark); }
-        .btn-danger { background-color: var(--danger); margin-top: 10px;}
-        .btn-danger:hover { background-color: #E64A19; }
-        .btn-save-img { background-color: var(--pitch-green); margin-bottom: 15px; }
-        .btn-save-img:hover { background-color: #388E3C; }
+        /* チェックされた時のスタイル */
+        .pos-checkbox:checked + .pos-label {
+            background-color: var(--accent); color: white; border-color: var(--accent); font-weight: bold;
+        }
+        /* 各ポジションごとの色分け（選択時） */
+        .pos-checkbox[value="GK"]:checked + .pos-label { background-color: #FFC107; color: black; border-color: #FFC107; }
+        .pos-checkbox[value="DF"]:checked + .pos-label { background-color: #2196F3; }
+        .pos-checkbox[value="MF"]:checked + .pos-label { background-color: #4CAF50; }
+        .pos-checkbox[value="FW"]:checked + .pos-label { background-color: #E91E63; }
+
+        button {
+            width: 100%; padding: 12px; background-color: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+        }
+        button:hover { opacity: 0.9; }
+        .btn-danger { background-color: var(--danger); margin-top: 20px; font-size: 0.8rem;}
+        .btn-save-img { background-color: var(--pitch-green); margin-bottom: 10px; }
+        .btn-edit { width: auto; padding: 4px 8px; font-size: 0.8rem; background: #ddd; color: #333; margin-left: auto; }
 
         /* 選手リスト */
-        .player-list {
-            margin-top: 10px;
-            flex-grow: 1;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
+        .player-list { margin-top: 10px; padding-bottom:10px; }
         .player-card {
-            background: #fff; border: 1px solid #eee; padding: 10px; margin-bottom: 8px; border-radius: 8px;
-            cursor: grab; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            touch-action: none; /* スクロール干渉防止 */
+            background: #fff; border: 1px solid #eee; padding: 8px 12px; margin-bottom: 6px; border-radius: 8px;
+            cursor: grab; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); touch-action: none;
         }
-        .player-card:active { cursor: grabbing; }
-        .player-pos-badge { background: #e0e0e0; font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; font-weight: bold;}
+        .player-pos-badge { 
+            background: #eee; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; font-weight: bold; color: #555;
+        }
 
         /* ピッチエリア */
         .pitch-area {
-            flex: 2;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* 上寄せに変更 */
-            background: #e0e0e0; /* 背景色変更 */
-            border-radius: 12px;
-            padding: 20px;
-            overflow: auto;
-            min-height: 300px;
-            position: relative; /* 画像保存時のキャプチャ範囲用 */
+            flex: 2; display: flex; justify-content: center; align-items: flex-start;
+            background: #e0e0e0; border-radius: 12px; padding: 20px; overflow: auto; min-height: 300px; position: relative;
         }
-
         .pitch {
-            width: 100%;
-            max-width: 500px; /* 最大幅を少し狭く */
-            aspect-ratio: 2/3;
-            background-color: var(--pitch-green);
-            position: relative;
-            border: 3px solid var(--pitch-line);
-            box-sizing: border-box;
+            width: 100%; max-width: 500px; aspect-ratio: 2/3;
+            background-color: var(--pitch-green); position: relative;
+            border: 3px solid var(--pitch-line); box-sizing: border-box;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            /* 芝生風テクスチャ（簡易的） */
             background-image: repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0,0,0,0.05) 20px, rgba(0,0,0,0.05) 40px);
         }
-
-        /* ピッチのライン描画 */
+        /* ライン */
         .pitch::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--pitch-line); margin-top:-1px;}
         .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20%; height: 13.3%; border: 2px solid var(--pitch-line); border-radius: 50%;}
         .penalty-area-top { position: absolute; top: 0; left: 25%; width: 50%; height: 16%; border: 2px solid var(--pitch-line); border-top: none;}
@@ -118,31 +102,38 @@
         .goal-area-top { position: absolute; top: 0; left: 37.5%; width: 25%; height: 6%; border: 2px solid var(--pitch-line); border-top: none; opacity: 0.7;}
         .goal-area-bottom { position: absolute; bottom: 0; left: 37.5%; width: 25%; height: 6%; border: 2px solid var(--pitch-line); border-bottom: none; opacity: 0.7;}
 
-
         /* 選手ドット */
         .field-player {
             position: absolute; transform: translate(-50%, -50%);
-            width: 42px; height: 42px;
-            background: rgba(255,255,255,0.9);
-            border: 2px solid #333; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 0.7rem; font-weight: bold; color: #333;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            text-align: center; z-index: 10;
-            transition: all 0.2s ease;
-            touch-action: none;
+            width: 44px; height: 44px;
+            background: white; border: 2px solid #333; border-radius: 50%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 0.75rem; font-weight: bold; color: #333;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10;
+            transition: transform 0.1s; touch-action: none;
         }
-        .field-player.drag-over { transform: translate(-50%, -50%) scale(1.1); background: rgba(255,255,255,0.5); }
+        .field-player small { font-size: 0.6rem; font-weight: normal; margin-top:-2px; display: block; line-height: 0.8;}
+        .field-player.drag-over { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
         .field-player .name-tooltip {
-            position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.8); color: white; padding: 3px 8px;
             border-radius: 10px; white-space: nowrap; font-size: 0.75rem; pointer-events: none;
         }
-        
-        /* 画像保存時の透かし */
+
         .watermark { position: absolute; bottom: 5px; right: 10px; font-size: 0.7rem; color: #666; opacity: 0.5; pointer-events: none; }
-        /* 現在のフォーメーション表示 */
         .current-formation-display { position: absolute; top: 5px; left: 10px; font-weight: bold; color: #333; background: rgba(255,255,255,0.7); padding: 2px 5px; border-radius: 4px; pointer-events: none;}
+
+        /* 編集用モーダル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal {
+            background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-cancel { background-color: #999; }
 
     </style>
 </head>
@@ -154,40 +145,42 @@
         <div class="sidebar">
              <button class="btn-save-img" onclick="savePitchImage()">📷 配置画像をダウンロード</button>
 
-            <h3>チーム設定</h3>
-            <div class="form-group">
-                <label>人数制</label>
-                <select id="teamSizeSelector" onchange="handleSizeChange()">
-                    <option value="8">8人制 (ジュニア・ソサイチ)</option>
-                    <option value="11" selected>11人制 (フルコート)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>フォーメーション</label>
-                <select id="formationSelector" onchange="handleFormationChange()">
+            <h3>設定</h3>
+            <div style="display: flex; gap:10px;">
+                <div style="flex:1">
+                    <label>人数</label>
+                    <select id="teamSizeSelector" onchange="handleSizeChange()">
+                        <option value="8">8人制</option>
+                        <option value="11" selected>11人制</option>
                     </select>
-                <small id="formationDesc" style="color: #666; font-size: 0.8rem; display:block; margin-top:5px;"></small>
+                </div>
+                <div style="flex:2">
+                    <label>フォーメーション</label>
+                    <select id="formationSelector" onchange="handleFormationChange()"></select>
+                </div>
             </div>
+            <small id="formationDesc" style="color: #666; font-size: 0.75rem; display:block; margin-top:5px; margin-bottom:10px;"></small>
 
-            <h3>新規選手登録</h3>
+            <h3>選手登録</h3>
             <div style="display: flex; gap: 5px; margin-bottom: 5px;">
                 <input type="text" id="playerName" placeholder="名前 (例:山田太郎)" style="flex:2">
-                <input type="text" id="playerNick" placeholder="短縮名 (例:山)" style="flex:1">
+                <input type="text" id="playerNick" placeholder="表示名 (例:山)" style="flex:1">
             </div>
-            <div class="form-group">
-                 <select id="playerPosition">
-                    <option value="FW">FW (フォワード)</option>
-                    <option value="MF" selected>MF (ミッドフィルダー)</option>
-                    <option value="DF">DF (ディフェンダー)</option>
-                    <option value="GK">GK (ゴールキーパー)</option>
-                </select>
+            
+            <label>ポジション (複数選択可)</label>
+            <div class="pos-selector" id="regPosSelector">
+                <input type="checkbox" id="posGK" value="GK" class="pos-checkbox"><label for="posGK" class="pos-label">GK</label>
+                <input type="checkbox" id="posDF" value="DF" class="pos-checkbox"><label for="posDF" class="pos-label">DF</label>
+                <input type="checkbox" id="posMF" value="MF" class="pos-checkbox" checked><label for="posMF" class="pos-label">MF</label>
+                <input type="checkbox" id="posFW" value="FW" class="pos-checkbox"><label for="posFW" class="pos-label">FW</label>
             </div>
+
             <button onclick="addPlayer()">選手を追加</button>
 
-            <h3>ベンチ / 待機選手 <small>(ドラッグで配置)</small></h3>
-            <div id="playerList" class="player-list" ondragover="allowDrop(event)" ondrop="dropToBench(event)" style="min-height: 100px; border: 2px dashed #ddd; border-radius: 8px; padding: 5px;">
-                </div>
-             <button class="btn-danger" onclick="clearAllData()">全データをリセット</button>
+            <h3>ベンチ <small>(ドラッグで配置)</small></h3>
+            <div id="playerList" class="player-list" ondragover="allowDrop(event)" ondrop="dropToBench(event)" style="min-height: 80px; border: 2px dashed #ddd; border-radius: 8px; padding: 5px;"></div>
+             
+            <button class="btn-danger" onclick="clearAllData()">全データをリセット</button>
         </div>
 
         <div class="pitch-area" id="captureArea">
@@ -200,41 +193,68 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3>選手編集</h3>
+            <div class="form-group">
+                <label>名前</label>
+                <input type="text" id="editName">
+            </div>
+            <div class="form-group">
+                <label>表示名 (短縮)</label>
+                <input type="text" id="editNick">
+            </div>
+            <label>ポジション</label>
+            <div class="pos-selector">
+                <input type="checkbox" id="editPosGK" value="GK" class="pos-checkbox"><label for="editPosGK" class="pos-label">GK</label>
+                <input type="checkbox" id="editPosDF" value="DF" class="pos-checkbox"><label for="editPosDF" class="pos-label">DF</label>
+                <input type="checkbox" id="editPosMF" value="MF" class="pos-checkbox"><label for="editPosMF" class="pos-label">MF</label>
+                <input type="checkbox" id="editPosFW" value="FW" class="pos-checkbox"><label for="editPosFW" class="pos-label">FW</label>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEditModal()">キャンセル</button>
+                <button onclick="saveEditPlayer()">保存</button>
+            </div>
+            <div style="margin-top:15px; text-align:right;">
+                <button onclick="deletePlayer()" style="background:none; border:none; color:red; width:auto; padding:0; cursor:pointer; font-size:0.8rem; text-decoration:underline;">この選手を削除</button>
+            </div>
+        </div>
+    </div>
+
 <script>
-    // --- データ定義 (フォーメーション座標 Top=0%, Left=0%) ---
-    // 攻撃方向は上向き（Topが相手ゴール、Bottomが自陣ゴール）
+    // --- データ定義 ---
     const formations = {
         "8": {
-            "2-3-2": { name: "2-3-2 (JFA推奨)", desc: "バランス型。個の能力向上に適した形。", slots: [{x:50,y:90,r:"GK"},{x:30,y:75,r:"DF"},{x:70,y:75,r:"DF"},{x:20,y:50,r:"MF"},{x:50,y:50,r:"MF"},{x:80,y:50,r:"MF"},{x:35,y:25,r:"FW"},{x:65,y:25,r:"FW"}]},
-            "3-3-1": { name: "3-3-1", desc: "最も一般的・安定型。", slots: [{x:50,y:90,r:"GK"},{x:20,y:75,r:"DF"},{x:50,y:75,r:"DF"},{x:80,y:75,r:"DF"},{x:25,y:50,r:"MF"},{x:50,y:45,r:"MF"},{x:75,y:50,r:"MF"},{x:50,y:20,r:"FW"}]},
+            "2-3-2": { name: "2-3-2", desc: "JFA推奨。バランス型。", slots: [{x:50,y:90,r:"GK"},{x:30,y:75,r:"DF"},{x:70,y:75,r:"DF"},{x:20,y:50,r:"MF"},{x:50,y:50,r:"MF"},{x:80,y:50,r:"MF"},{x:35,y:25,r:"FW"},{x:65,y:25,r:"FW"}]},
+            "3-3-1": { name: "3-3-1", desc: "安定的・一般的。", slots: [{x:50,y:90,r:"GK"},{x:20,y:75,r:"DF"},{x:50,y:75,r:"DF"},{x:80,y:75,r:"DF"},{x:25,y:50,r:"MF"},{x:50,y:45,r:"MF"},{x:75,y:50,r:"MF"},{x:50,y:20,r:"FW"}]},
             "2-4-1": { name: "2-4-1", desc: "中盤支配型。", slots: [{x:50,y:90,r:"GK"},{x:35,y:80,r:"DF"},{x:65,y:80,r:"DF"},{x:15,y:50,r:"MF"},{x:40,y:55,r:"MF"},{x:60,y:55,r:"MF"},{x:85,y:50,r:"MF"},{x:50,y:20,r:"FW"}]},
-            "3-2-2": { name: "3-2-2", desc: "守備・カウンター型。", slots: [{x:50,y:90,r:"GK"},{x:20,y:75,r:"DF"},{x:50,y:80,r:"DF"},{x:80,y:75,r:"DF"},{x:35,y:50,r:"MF"},{x:65,y:50,r:"MF"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]}
+            "3-2-2": { name: "3-2-2", desc: "守備カウンター。", slots: [{x:50,y:90,r:"GK"},{x:20,y:75,r:"DF"},{x:50,y:80,r:"DF"},{x:80,y:75,r:"DF"},{x:35,y:50,r:"MF"},{x:65,y:50,r:"MF"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]}
         },
         "11": {
-            "4-4-2": { name: "4-4-2", desc: "バランスの取れた伝統形。", slots: [{x:50,y:92,r:"GK"},{x:15,y:78,r:"SB"},{x:38,y:82,r:"CB"},{x:62,y:82,r:"CB"},{x:85,y:78,r:"SB"},{x:15,y:45,r:"SH"},{x:38,y:52,r:"CH"},{x:62,y:52,r:"CH"},{x:85,y:45,r:"SH"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]},
-            "4-3-3": { name: "4-3-3", desc: "サイド攻撃型。アンカー1枚。", slots: [{x:50,y:92,r:"GK"},{x:15,y:78,r:"SB"},{x:38,y:82,r:"CB"},{x:62,y:82,r:"CB"},{x:85,y:78,r:"SB"},{x:50,y:65,r:"DMF"},{x:30,y:45,r:"OMF"},{x:70,y:45,r:"OMF"},{x:15,y:25,r:"WG"},{x:50,y:18,r:"CF"},{x:85,y:25,r:"WG"}]},
-            "4-2-3-1": { name: "4-2-3-1", desc: "ダブルボランチ。攻撃の起点を作る。", slots: [{x:50,y:92,r:"GK"},{x:12,y:78,r:"SB"},{x:36,y:82,r:"CB"},{x:64,y:82,r:"CB"},{x:88,y:78,r:"SB"},{x:38,y:62,r:"DMF"},{x:62,y:62,r:"DMF"},{x:15,y:38,r:"SH"},{x:50,y:38,r:"OH"},{x:85,y:38,r:"SH"},{x:50,y:18,r:"CF"}]},
-            "3-5-2": { name: "3-5-2", desc: "中盤支配。サイドを広く使う。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:8,y:50,r:"WB"},{x:35,y:58,r:"DMF"},{x:65,y:58,r:"DMF"},{x:92,y:50,r:"WB"},{x:50,y:40,r:"OMF"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]},
-            "3-4-3": { name: "3-4-3", desc: "攻撃的3バック。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:12,y:50,r:"WB"},{x:40,y:58,r:"CH"},{x:60,y:58,r:"CH"},{x:88,y:50,r:"WB"},{x:20,y:22,r:"WG"},{x:50,y:18,r:"CF"},{x:80,y:22,r:"WG"}]}
+            "4-4-2": { name: "4-4-2", desc: "伝統的バランス型。", slots: [{x:50,y:92,r:"GK"},{x:15,y:78,r:"SB"},{x:38,y:82,r:"CB"},{x:62,y:82,r:"CB"},{x:85,y:78,r:"SB"},{x:15,y:45,r:"SH"},{x:38,y:52,r:"CH"},{x:62,y:52,r:"CH"},{x:85,y:45,r:"SH"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]},
+            "4-3-3": { name: "4-3-3", desc: "サイド攻撃型。", slots: [{x:50,y:92,r:"GK"},{x:15,y:78,r:"SB"},{x:38,y:82,r:"CB"},{x:62,y:82,r:"CB"},{x:85,y:78,r:"SB"},{x:50,y:65,r:"DMF"},{x:30,y:45,r:"OMF"},{x:70,y:45,r:"OMF"},{x:15,y:25,r:"WG"},{x:50,y:18,r:"CF"},{x:85,y:25,r:"WG"}]},
+            "4-2-3-1": { name: "4-2-3-1", desc: "起点を作る。", slots: [{x:50,y:92,r:"GK"},{x:12,y:78,r:"SB"},{x:36,y:82,r:"CB"},{x:64,y:82,r:"CB"},{x:88,y:78,r:"SB"},{x:38,y:62,r:"DMF"},{x:62,y:62,r:"DMF"},{x:15,y:38,r:"SH"},{x:50,y:38,r:"OH"},{x:85,y:38,r:"SH"},{x:50,y:18,r:"CF"}]},
+            "3-5-2": { name: "3-5-2", desc: "中盤支配。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:8,y:50,r:"WB"},{x:35,y:58,r:"DMF"},{x:65,y:58,r:"DMF"},{x:92,y:50,r:"WB"},{x:50,y:40,r:"OMF"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]},
+            "3-4-3": { name: "3-4-3", desc: "攻撃的3バック。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:12,y:50,r:"WB"},{x:40,y:58,r:"CH"},{x:60,y:58,r:"CH"},{x:88,y:50,r:"WB"},{x:20,y:22,r:"WG"},{x:50,y:18,r:"CF"},{x:80,y:22,r:"WG"}]},
+            "4-1-4-1": { name: "4-1-4-1", desc: "アンカー配置。", slots: [{x:50,y:92,r:"GK"},{x:10,y:75,r:"SB"},{x:35,y:80,r:"CB"},{x:65,y:80,r:"CB"},{x:90,y:75,r:"SB"},{x:50,y:65,r:"DMF"},{x:15,y:40,r:"SH"},{x:35,y:45,r:"IH"},{x:65,y:45,r:"IH"},{x:85,y:40,r:"SH"},{x:50,y:15,r:"CF"}]}
         }
     };
 
-    // アプリの状態変数
     let appState = {
         players: [],
         teamSize: "11",
         formationKey: "4-4-2"
     };
     const STORAGE_KEY = 'soccerPlotterData_v2';
+    let editingPlayerId = null;
 
     // --- 初期化 ---
     window.onload = function() {
-        loadData(); // データ読み込み
-        updateFormationOptions(false); // オプション更新（描画はloadDataがやるのでfalse）
-        renderApp(); // 画面全体の描画
+        loadData();
+        updateFormationOptions(false);
+        renderApp();
     };
 
-    // --- データ管理 (Local Storage) ---
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
     }
@@ -243,15 +263,25 @@
         const data = localStorage.getItem(STORAGE_KEY);
         if (data) {
             try {
-                appState = JSON.parse(data);
-                // セレクトボックスの状態を復元
+                const parsed = JSON.parse(data);
+                appState.teamSize = parsed.teamSize || "11";
+                appState.formationKey = parsed.formationKey || "4-4-2";
+                
+                // データのマイグレーション（古いデータ形式: posが文字列だった場合、配列に変換）
+                appState.players = (parsed.players || []).map(p => {
+                    if (typeof p.pos === 'string') {
+                        return { ...p, pos: [p.pos] }; // 文字列なら配列に入れる
+                    }
+                    return p;
+                });
+                
                 document.getElementById('teamSizeSelector').value = appState.teamSize;
             } catch (e) { console.error("データ読み込みエラー", e); localStorage.removeItem(STORAGE_KEY); }
         }
     }
 
     function clearAllData() {
-        if(confirm("本当に全ての選手データと設定をリセットしますか？")){
+        if(confirm("全てのデータを削除して初期化しますか？")){
             localStorage.removeItem(STORAGE_KEY);
             location.reload();
         }
@@ -262,19 +292,15 @@
         appState.teamSize = document.getElementById('teamSizeSelector').value;
         updateFormationOptions(true);
     }
-
     function handleFormationChange() {
         appState.formationKey = document.getElementById('formationSelector').value;
-        renderApp(); // フォーメーション変更時は再描画
+        renderApp();
         saveData();
     }
-
-    // フォーメーション選択肢の更新
     function updateFormationOptions(shouldRender) {
         const size = appState.teamSize;
         const selector = document.getElementById('formationSelector');
         selector.innerHTML = "";
-
         const options = formations[size];
         let firstKey = null;
         for (const key in options) {
@@ -285,40 +311,99 @@
             if(key === appState.formationKey) opt.selected = true;
             selector.appendChild(opt);
         }
-        // 現在の選択が新サイズに存在しない場合、先頭を選択
         if(!options[appState.formationKey]){
             appState.formationKey = firstKey;
              if(selector.options.length > 0) selector.options[0].selected = true;
         }
-
-        if(shouldRender) {
-             renderApp();
-             saveData();
-        }
+        if(shouldRender) { renderApp(); saveData(); }
     }
 
-    // 選手追加
+    // --- 選手操作 (追加・編集) ---
+    function getSelectedPositions(containerId) {
+        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
     function addPlayer() {
         const nameInput = document.getElementById('playerName');
         const nickInput = document.getElementById('playerNick');
-        const posInput = document.getElementById('playerPosition');
+        const positions = getSelectedPositions('regPosSelector');
 
         if (!nameInput.value) { alert("名前を入力してください"); return; }
+        if (positions.length === 0) { alert("ポジションを少なくとも1つ選択してください"); return; }
 
         const player = {
-            id: Date.now().toString(), // ユニークID
+            id: Date.now().toString(),
             name: nameInput.value,
             nick: nickInput.value || nameInput.value.slice(0, 2),
-            pos: posInput.value,
-            slotIndex: null // どのスロットにいるか (nullならベンチ)
+            pos: positions,
+            slotIndex: null
         };
 
         appState.players.push(player);
-        renderPlayerList();
+        renderApp();
         saveData();
         
         nameInput.value = ""; nickInput.value = "";
     }
+
+    // 編集モーダル関連
+    function openEditModal(playerId) {
+        const player = appState.players.find(p => p.id === playerId);
+        if(!player) return;
+        editingPlayerId = playerId;
+
+        document.getElementById('editName').value = player.name;
+        document.getElementById('editNick').value = player.nick;
+        
+        // チェックボックスの状態を反映
+        ['GK', 'DF', 'MF', 'FW'].forEach(pos => {
+            document.getElementById('editPos' + pos).checked = player.pos.includes(pos);
+        });
+
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        editingPlayerId = null;
+    }
+
+    function saveEditPlayer() {
+        if(!editingPlayerId) return;
+        const player = appState.players.find(p => p.id === editingPlayerId);
+        if(player) {
+            const newPositions = getSelectedPositions('editModal'); // モーダル内のID指定なしで取得するのは難しいのでID付与した方がいいが、ここでは親要素指定しない方法で
+            // 修正: getSelectedPositionsはコンテナIDを受け取るようにしたので、モーダル内のdivにクラスかIDが必要
+            // 簡易的に直接取得
+            const editedPos = [];
+            if(document.getElementById('editPosGK').checked) editedPos.push('GK');
+            if(document.getElementById('editPosDF').checked) editedPos.push('DF');
+            if(document.getElementById('editPosMF').checked) editedPos.push('MF');
+            if(document.getElementById('editPosFW').checked) editedPos.push('FW');
+
+            if(editedPos.length === 0) { alert("ポジションを選択してください"); return; }
+
+            player.name = document.getElementById('editName').value;
+            player.nick = document.getElementById('editNick').value;
+            player.pos = editedPos;
+            
+            renderApp();
+            saveData();
+        }
+        closeEditModal();
+    }
+
+    function deletePlayer() {
+        if(!editingPlayerId) return;
+        if(confirm("この選手を削除しますか？")) {
+            appState.players = appState.players.filter(p => p.id !== editingPlayerId);
+            renderApp();
+            saveData();
+            closeEditModal();
+        }
+    }
+
 
     // --- 描画関連 ---
     function renderApp() {
@@ -327,26 +412,38 @@
         renderPlayerList();
     }
 
-    // ベンチリスト描画
     function renderPlayerList() {
         const list = document.getElementById('playerList');
         list.innerHTML = "";
+        
         appState.players.forEach(p => {
-            if (p.slotIndex === null) { // ベンチにいる選手
-                const div = document.createElement('div');
-                div.className = 'player-card';
-                div.draggable = true;
-                div.innerHTML = `<span>${p.name}</span><span class="player-pos-badge">${p.pos}</span>`;
-                div.ondragstart = (e) => dragStart(e, p.id);
-                // スマホ用タッチイベント(Polyfillが処理するが明示的にも付与)
-                div.ontouchstart = (e) => dragStart(e, p.id);
+            if (p.slotIndex === null) {
+                const div = createPlayerCard(p);
                 list.appendChild(div);
             }
         });
-        if(list.children.length === 0) list.innerHTML = "<div style='color:#999; text-align:center; padding:10px;'>空席</div>";
+        if(list.children.length === 0) list.innerHTML = "<div style='color:#bbb; text-align:center; padding:10px; font-size:0.8rem;'>ベンチは空です</div>";
     }
 
-    // ピッチ上のスロット(枠)描画
+    function createPlayerCard(p) {
+        const div = document.createElement('div');
+        div.className = 'player-card';
+        div.draggable = true;
+        div.ondragstart = (e) => dragStart(e, p.id);
+        div.ontouchstart = (e) => dragStart(e, p.id); // Polyfill support
+        
+        const posText = p.pos.join('/');
+        
+        div.innerHTML = `
+            <div style="flex-grow:1; display:flex; align-items:center; gap:5px;">
+                <span style="font-weight:bold;">${p.name}</span>
+                <span class="player-pos-badge">${posText}</span>
+            </div>
+            <button class="btn-edit" onclick="openEditModal('${p.id}')">✏️</button>
+        `;
+        return div;
+    }
+
     function renderFormationSlots() {
         const config = formations[appState.teamSize][appState.formationKey];
         const pitch = document.getElementById('pitch');
@@ -354,7 +451,7 @@
         document.getElementById('formationDesc').textContent = config.desc;
         document.getElementById('onImageFormationName').textContent = config.name;
 
-        // ピッチ内の既存スロットをクリア（ライン以外）
+        // Reset but keep lines
         pitch.innerHTML = `
             <div class="penalty-area-top"></div><div class="goal-area-top"></div>
             <div class="penalty-area-bottom"></div><div class="goal-area-bottom"></div>
@@ -366,7 +463,7 @@
             slotDiv.id = 'slot-' + index;
             slotDiv.style.left = slot.x + '%'; slotDiv.style.top = slot.y + '%';
             slotDiv.innerHTML = `<span style="opacity:0.3">${slot.r}</span>`;
-            // ドロップゾーン設定
+            
             slotDiv.ondragover = allowDrop;
             slotDiv.ondragleave = dragLeave;
             slotDiv.ondrop = (e) => dropToField(e, index);
@@ -374,7 +471,6 @@
         });
     }
 
-    // フィールド上の選手描画
     function renderPlayersOnField() {
         appState.players.forEach(p => {
             if (p.slotIndex !== null) {
@@ -382,45 +478,46 @@
                 if (slotDiv) {
                     updateSlotAppearance(slotDiv, p);
                 } else {
-                    // フォーメーション変更でスロットがなくなった場合、ベンチに戻す
-                    p.slotIndex = null;
+                    p.slotIndex = null; // Slot no longer exists
                 }
             }
         });
-        // スロットから溢れた選手がいた場合のために再保存
-        saveData();
     }
 
     function updateSlotAppearance(slotDiv, player) {
-        const bgColor = player.pos === 'GK' ? '#FFC107' : (player.pos === 'DF' ? '#2196F3' : (player.pos === 'MF' ? '#4CAF50' : '#E91E63'));
-        const textColor = '#FFF';
+        // 色分けロジック: 最初のポジションを使用
+        const mainPos = player.pos[0];
+        const bgColor = mainPos === 'GK' ? '#FFC107' : (mainPos === 'DF' ? '#2196F3' : (mainPos === 'MF' ? '#4CAF50' : '#E91E63'));
+        const textColor = mainPos === 'GK' ? '#000' : '#FFF';
 
-        slotDiv.style.background = bgColor; slotDiv.style.color = textColor;
+        slotDiv.style.background = bgColor; 
+        slotDiv.style.color = textColor;
         slotDiv.style.border = "2px solid white";
-        slotDiv.innerHTML = `${player.nick}<div class="name-tooltip">${player.name}</div>`;
+        
+        // 複数ポジションがある場合、下に小さく表示するなどの工夫も可能だが、
+        // スペースがないのでツールチップに詳細、表示はニックネームとメインPos色で表現
+        slotDiv.innerHTML = `
+            ${player.nick}
+            <div class="name-tooltip">${player.name} (${player.pos.join('/')})</div>
+        `;
+        
         slotDiv.draggable = true;
         slotDiv.ondragstart = (evt) => dragStart(evt, player.id);
         slotDiv.ontouchstart = (evt) => dragStart(evt, player.id);
     }
 
-    // --- ドラッグ＆ドロップ処理 (スマホはPolyfillがこれをエミュレート) ---
+    // --- ドラッグ＆ドロップ ---
     function dragStart(e, playerId) {
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", playerId);
     }
     function allowDrop(e) {
         e.preventDefault();
-        if(e.target.classList.contains('field-player')){
-             e.target.classList.add('drag-over');
-        }
+        if(e.target.classList.contains('field-player')){ e.target.classList.add('drag-over'); }
     }
     function dragLeave(e) {
-         if(e.target.classList.contains('field-player')){
-             e.target.classList.remove('drag-over');
-        }
+         if(e.target.classList.contains('field-player')){ e.target.classList.remove('drag-over'); }
     }
-
-    // フィールドへのドロップ
     function dropToField(e, slotIndex) {
         e.preventDefault();
         e.target.classList.remove('drag-over');
@@ -428,59 +525,41 @@
         const player = appState.players.find(p => p.id === playerId);
         if (!player) return;
 
-        // 1. 移動元の処理: 元々この選手がいた場所を空ける
-        // (slotIndexがnullならベンチなので何もしなくて良い)
-
-        // 2. 移動先の処理: ドロップしたスロットに既に他の選手がいたら、その選手を「追い出す」
-        // (追い出された選手は、移動元の場所に行くか、ベンチに行くか。今回はベンチに戻す仕様とする)
         const existingPlayer = appState.players.find(p => p.slotIndex === slotIndex && p.id !== playerId);
-        if (existingPlayer) {
-            existingPlayer.slotIndex = null; // ベンチへ
-        }
+        if (existingPlayer) existingPlayer.slotIndex = null; // Swap out
 
-        // 3. 配置を確定
         player.slotIndex = slotIndex;
-        
-        renderApp(); // 全体再描画
-        saveData();
+        renderApp(); saveData();
     }
-
-    // ベンチエリアへのドロップ
     function dropToBench(e) {
         e.preventDefault();
         const playerId = e.dataTransfer.getData("text/plain");
         const player = appState.players.find(p => p.id === playerId);
-        
-        // フィールドからベンチへの移動のみ処理
         if (player && player.slotIndex !== null) {
             player.slotIndex = null;
-            renderApp();
-            saveData();
+            renderApp(); saveData();
         }
     }
 
-    // --- 画像保存機能 ---
+    // --- 画像保存 ---
     function savePitchImage() {
         const captureArea = document.getElementById('captureArea');
         const btn = document.querySelector('.btn-save-img');
+        const originalText = btn.textContent;
         btn.disabled = true; btn.textContent = "生成中...";
 
-        // html2canvasを使って対象エリアを画像化
         html2canvas(captureArea, {
-            scale: 2, // 高解像度で取得
-            backgroundColor: "#e0e0e0", // 背景色を指定
-            logging: false
+            scale: 2, backgroundColor: "#e0e0e0", logging: false, useCORS: true
         }).then(canvas => {
-            // 画像リンクを作成してダウンロード発火
             const link = document.createElement('a');
-            link.download = `formation_${appState.formationKey}_${new Date().getTime()}.png`;
+            link.download = `formation_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            btn.disabled = false; btn.textContent = "📷 配置画像をダウンロード";
+            btn.disabled = false; btn.textContent = originalText;
         }).catch(err => {
-            alert("画像の保存に失敗しました");
             console.error(err);
-            btn.disabled = false; btn.textContent = "📷 配置画像をダウンロード";
+            alert("保存エラー");
+            btn.disabled = false; btn.textContent = originalText;
         });
     }
 
