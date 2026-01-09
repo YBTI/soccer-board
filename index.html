@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>サッカーポジションプロッター Pro</title>
+    <title>サッカーポジションプロッター Pro v4</title>
     <script src="https://Bernardo-Castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -47,17 +47,15 @@
         
         /* ポジション選択ボタン群 */
         .pos-selector { display: flex; gap: 5px; margin-bottom: 10px; }
-        .pos-checkbox { display: none; } /* 本物のチェックボックスは隠す */
+        .pos-checkbox { display: none; }
         .pos-label {
             flex: 1; text-align: center; padding: 8px 2px;
             border: 1px solid #ddd; border-radius: 4px;
             font-size: 0.8rem; cursor: pointer; background: #f9f9f9; user-select: none;
         }
-        /* チェックされた時のスタイル */
         .pos-checkbox:checked + .pos-label {
             background-color: var(--accent); color: white; border-color: var(--accent); font-weight: bold;
         }
-        /* 各ポジションごとの色分け（選択時） */
         .pos-checkbox[value="GK"]:checked + .pos-label { background-color: #FFC107; color: black; border-color: #FFC107; }
         .pos-checkbox[value="DF"]:checked + .pos-label { background-color: #2196F3; }
         .pos-checkbox[value="MF"]:checked + .pos-label { background-color: #4CAF50; }
@@ -112,7 +110,7 @@
             cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10;
             transition: transform 0.1s; touch-action: none;
         }
-        .field-player small { font-size: 0.6rem; font-weight: normal; margin-top:-2px; display: block; line-height: 0.8;}
+        .field-player:active { transform: translate(-50%, -50%) scale(0.9); }
         .field-player.drag-over { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.2); }
         .field-player .name-tooltip {
             position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);
@@ -123,17 +121,26 @@
         .watermark { position: absolute; bottom: 5px; right: 10px; font-size: 0.7rem; color: #666; opacity: 0.5; pointer-events: none; }
         .current-formation-display { position: absolute; top: 5px; left: 10px; font-weight: bold; color: #333; background: rgba(255,255,255,0.7); padding: 2px 5px; border-radius: 4px; pointer-events: none;}
 
-        /* 編集用モーダル */
+        /* モーダル共通 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal {
-            background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-height: 80vh; overflow-y: auto;
         }
+        .modal h3 { margin-top: 0; text-align: center; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .btn-cancel { background-color: #999; }
+        
+        /* 選手選択リスト (モーダル内) */
+        .select-list { margin-top: 10px; }
+        .select-item {
+            padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .select-item:hover { background-color: #f5f5f5; }
+        .select-item.selected { background-color: #e3f2fd; }
 
     </style>
 </head>
@@ -163,11 +170,11 @@
 
             <h3>選手登録</h3>
             <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                <input type="text" id="playerName" placeholder="名前 (例:山田太郎)" style="flex:2">
-                <input type="text" id="playerNick" placeholder="表示名 (例:山)" style="flex:1">
+                <input type="text" id="playerName" placeholder="名前" style="flex:2">
+                <input type="text" id="playerNick" placeholder="表示名" style="flex:1">
             </div>
             
-            <label>ポジション (複数選択可)</label>
+            <label>ポジション (複数可)</label>
             <div class="pos-selector" id="regPosSelector">
                 <input type="checkbox" id="posGK" value="GK" class="pos-checkbox"><label for="posGK" class="pos-label">GK</label>
                 <input type="checkbox" id="posDF" value="DF" class="pos-checkbox"><label for="posDF" class="pos-label">DF</label>
@@ -177,7 +184,7 @@
 
             <button onclick="addPlayer()">選手を追加</button>
 
-            <h3>ベンチ <small>(ドラッグで配置)</small></h3>
+            <h3>ベンチ <small>(タップで編集 / ドラッグ可)</small></h3>
             <div id="playerList" class="player-list" ondragover="allowDrop(event)" ondrop="dropToBench(event)" style="min-height: 80px; border: 2px dashed #ddd; border-radius: 8px; padding: 5px;"></div>
              
             <button class="btn-danger" onclick="clearAllData()">全データをリセット</button>
@@ -201,7 +208,7 @@
                 <input type="text" id="editName">
             </div>
             <div class="form-group">
-                <label>表示名 (短縮)</label>
+                <label>表示名</label>
                 <input type="text" id="editNick">
             </div>
             <label>ポジション</label>
@@ -217,6 +224,20 @@
             </div>
             <div style="margin-top:15px; text-align:right;">
                 <button onclick="deletePlayer()" style="background:none; border:none; color:red; width:auto; padding:0; cursor:pointer; font-size:0.8rem; text-decoration:underline;">この選手を削除</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal">
+            <h3>選手を選択</h3>
+            <p style="text-align:center; font-size:0.8rem; color:#666;">配置する選手を選んでください</p>
+            
+            <div id="assignList" class="select-list">
+                </div>
+
+            <div class="modal-buttons" style="flex-direction: column;">
+                <button class="btn-cancel" onclick="closeAssignModal()">閉じる</button>
             </div>
         </div>
     </div>
@@ -247,18 +268,15 @@
     };
     const STORAGE_KEY = 'soccerPlotterData_v2';
     let editingPlayerId = null;
+    let targetSlotIndex = null; // タップ配置用
 
-    // --- 初期化 ---
     window.onload = function() {
         loadData();
         updateFormationOptions(false);
         renderApp();
     };
 
-    function saveData() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-    }
-
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
     function loadData() {
         const data = localStorage.getItem(STORAGE_KEY);
         if (data) {
@@ -266,20 +284,14 @@
                 const parsed = JSON.parse(data);
                 appState.teamSize = parsed.teamSize || "11";
                 appState.formationKey = parsed.formationKey || "4-4-2";
-                
-                // データのマイグレーション（古いデータ形式: posが文字列だった場合、配列に変換）
                 appState.players = (parsed.players || []).map(p => {
-                    if (typeof p.pos === 'string') {
-                        return { ...p, pos: [p.pos] }; // 文字列なら配列に入れる
-                    }
+                    if (typeof p.pos === 'string') return { ...p, pos: [p.pos] };
                     return p;
                 });
-                
                 document.getElementById('teamSizeSelector').value = appState.teamSize;
-            } catch (e) { console.error("データ読み込みエラー", e); localStorage.removeItem(STORAGE_KEY); }
+            } catch (e) { console.error(e); }
         }
     }
-
     function clearAllData() {
         if(confirm("全てのデータを削除して初期化しますか？")){
             localStorage.removeItem(STORAGE_KEY);
@@ -287,15 +299,14 @@
         }
     }
 
-    // --- イベントハンドラ ---
+    // --- 設定変更 ---
     function handleSizeChange() {
         appState.teamSize = document.getElementById('teamSizeSelector').value;
         updateFormationOptions(true);
     }
     function handleFormationChange() {
         appState.formationKey = document.getElementById('formationSelector').value;
-        renderApp();
-        saveData();
+        renderApp(); saveData();
     }
     function updateFormationOptions(shouldRender) {
         const size = appState.teamSize;
@@ -306,8 +317,7 @@
         for (const key in options) {
             if(!firstKey) firstKey = key;
             const opt = document.createElement('option');
-            opt.value = key;
-            opt.textContent = options[key].name;
+            opt.value = key; opt.textContent = options[key].name;
             if(key === appState.formationKey) opt.selected = true;
             selector.appendChild(opt);
         }
@@ -318,19 +328,18 @@
         if(shouldRender) { renderApp(); saveData(); }
     }
 
-    // --- 選手操作 (追加・編集) ---
-    function getSelectedPositions(containerId) {
-        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
-        return Array.from(checkboxes).map(cb => cb.value);
-    }
-
+    // --- 選手操作 ---
     function addPlayer() {
         const nameInput = document.getElementById('playerName');
         const nickInput = document.getElementById('playerNick');
-        const positions = getSelectedPositions('regPosSelector');
+        const positions = [];
+        if(document.getElementById('posGK').checked) positions.push('GK');
+        if(document.getElementById('posDF').checked) positions.push('DF');
+        if(document.getElementById('posMF').checked) positions.push('MF');
+        if(document.getElementById('posFW').checked) positions.push('FW');
 
         if (!nameInput.value) { alert("名前を入力してください"); return; }
-        if (positions.length === 0) { alert("ポジションを少なくとも1つ選択してください"); return; }
+        if (positions.length === 0) { alert("ポジションを選択してください"); return; }
 
         const player = {
             id: Date.now().toString(),
@@ -339,73 +348,116 @@
             pos: positions,
             slotIndex: null
         };
-
         appState.players.push(player);
-        renderApp();
-        saveData();
-        
+        renderApp(); saveData();
         nameInput.value = ""; nickInput.value = "";
     }
 
-    // 編集モーダル関連
+    // 編集モーダル
     function openEditModal(playerId) {
         const player = appState.players.find(p => p.id === playerId);
         if(!player) return;
         editingPlayerId = playerId;
-
         document.getElementById('editName').value = player.name;
         document.getElementById('editNick').value = player.nick;
-        
-        // チェックボックスの状態を反映
         ['GK', 'DF', 'MF', 'FW'].forEach(pos => {
             document.getElementById('editPos' + pos).checked = player.pos.includes(pos);
         });
-
         document.getElementById('editModal').style.display = 'flex';
     }
-
     function closeEditModal() {
         document.getElementById('editModal').style.display = 'none';
         editingPlayerId = null;
     }
-
     function saveEditPlayer() {
         if(!editingPlayerId) return;
         const player = appState.players.find(p => p.id === editingPlayerId);
         if(player) {
-            const newPositions = getSelectedPositions('editModal'); // モーダル内のID指定なしで取得するのは難しいのでID付与した方がいいが、ここでは親要素指定しない方法で
-            // 修正: getSelectedPositionsはコンテナIDを受け取るようにしたので、モーダル内のdivにクラスかIDが必要
-            // 簡易的に直接取得
             const editedPos = [];
-            if(document.getElementById('editPosGK').checked) editedPos.push('GK');
-            if(document.getElementById('editPosDF').checked) editedPos.push('DF');
-            if(document.getElementById('editPosMF').checked) editedPos.push('MF');
-            if(document.getElementById('editPosFW').checked) editedPos.push('FW');
-
+            ['GK', 'DF', 'MF', 'FW'].forEach(pos => {
+                if(document.getElementById('editPos' + pos).checked) editedPos.push(pos);
+            });
             if(editedPos.length === 0) { alert("ポジションを選択してください"); return; }
-
             player.name = document.getElementById('editName').value;
             player.nick = document.getElementById('editNick').value;
             player.pos = editedPos;
-            
-            renderApp();
-            saveData();
+            renderApp(); saveData();
         }
         closeEditModal();
     }
-
     function deletePlayer() {
         if(!editingPlayerId) return;
         if(confirm("この選手を削除しますか？")) {
             appState.players = appState.players.filter(p => p.id !== editingPlayerId);
-            renderApp();
-            saveData();
-            closeEditModal();
+            renderApp(); saveData(); closeEditModal();
         }
     }
 
+    // --- 配置選択モーダル（新機能） ---
+    function openAssignModal(slotIndex) {
+        targetSlotIndex = slotIndex;
+        const list = document.getElementById('assignList');
+        list.innerHTML = "";
 
-    // --- 描画関連 ---
+        // このスロットに現在配置されている選手
+        const currentPlayer = appState.players.find(p => p.slotIndex === slotIndex);
+        if (currentPlayer) {
+            const div = document.createElement('div');
+            div.className = 'select-item';
+            div.style.background = '#ffebee';
+            div.innerHTML = `
+                <span><span style="font-weight:bold">${currentPlayer.name}</span> を外す</span>
+                <span style="font-size:0.8rem">✕</span>
+            `;
+            div.onclick = () => { assignPlayerToSlot(null); }; // nullで外す
+            list.appendChild(div);
+        }
+
+        // ベンチの選手一覧
+        const benchPlayers = appState.players.filter(p => p.slotIndex === null);
+        if (benchPlayers.length === 0) {
+            list.innerHTML += `<div style="padding:10px; color:#999; text-align:center;">ベンチに選手がいません</div>`;
+        }
+
+        benchPlayers.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'select-item';
+            div.innerHTML = `
+                <span>${p.name} <small>(${p.pos.join('/')})</small></span>
+                <button class="btn-edit" style="margin:0">選択</button>
+            `;
+            div.onclick = () => { assignPlayerToSlot(p.id); };
+            list.appendChild(div);
+        });
+
+        document.getElementById('assignModal').style.display = 'flex';
+    }
+
+    function closeAssignModal() {
+        document.getElementById('assignModal').style.display = 'none';
+        targetSlotIndex = null;
+    }
+
+    function assignPlayerToSlot(playerId) {
+        if (targetSlotIndex === null) return;
+
+        // 1. まずそのスロットを空にする
+        const existing = appState.players.find(p => p.slotIndex === targetSlotIndex);
+        if (existing) existing.slotIndex = null;
+
+        // 2. 選手を配置（nullなら外すだけ）
+        if (playerId) {
+            const player = appState.players.find(p => p.id === playerId);
+            if (player) player.slotIndex = targetSlotIndex;
+        }
+
+        renderApp();
+        saveData();
+        closeAssignModal();
+    }
+
+
+    // --- 描画 ---
     function renderApp() {
         renderFormationSlots();
         renderPlayersOnField();
@@ -415,43 +467,32 @@
     function renderPlayerList() {
         const list = document.getElementById('playerList');
         list.innerHTML = "";
-        
         appState.players.forEach(p => {
             if (p.slotIndex === null) {
-                const div = createPlayerCard(p);
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                div.draggable = true;
+                div.innerHTML = `
+                    <div style="flex-grow:1; display:flex; align-items:center; gap:5px;">
+                        <span style="font-weight:bold;">${p.name}</span>
+                        <span class="player-pos-badge">${p.pos.join('/')}</span>
+                    </div>
+                    <button class="btn-edit" onclick="openEditModal('${p.id}')">✏️</button>
+                `;
+                div.ondragstart = (e) => dragStart(e, p.id);
+                div.ontouchstart = (e) => dragStart(e, p.id);
                 list.appendChild(div);
             }
         });
         if(list.children.length === 0) list.innerHTML = "<div style='color:#bbb; text-align:center; padding:10px; font-size:0.8rem;'>ベンチは空です</div>";
     }
 
-    function createPlayerCard(p) {
-        const div = document.createElement('div');
-        div.className = 'player-card';
-        div.draggable = true;
-        div.ondragstart = (e) => dragStart(e, p.id);
-        div.ontouchstart = (e) => dragStart(e, p.id); // Polyfill support
-        
-        const posText = p.pos.join('/');
-        
-        div.innerHTML = `
-            <div style="flex-grow:1; display:flex; align-items:center; gap:5px;">
-                <span style="font-weight:bold;">${p.name}</span>
-                <span class="player-pos-badge">${posText}</span>
-            </div>
-            <button class="btn-edit" onclick="openEditModal('${p.id}')">✏️</button>
-        `;
-        return div;
-    }
-
     function renderFormationSlots() {
         const config = formations[appState.teamSize][appState.formationKey];
         const pitch = document.getElementById('pitch');
-        
         document.getElementById('formationDesc').textContent = config.desc;
         document.getElementById('onImageFormationName').textContent = config.name;
 
-        // Reset but keep lines
         pitch.innerHTML = `
             <div class="penalty-area-top"></div><div class="goal-area-top"></div>
             <div class="penalty-area-bottom"></div><div class="goal-area-bottom"></div>
@@ -464,9 +505,19 @@
             slotDiv.style.left = slot.x + '%'; slotDiv.style.top = slot.y + '%';
             slotDiv.innerHTML = `<span style="opacity:0.3">${slot.r}</span>`;
             
+            // ドラッグドロップ用
             slotDiv.ondragover = allowDrop;
             slotDiv.ondragleave = dragLeave;
             slotDiv.ondrop = (e) => dropToField(e, index);
+            
+            // ★タップ配置用（ここが新機能）
+            // ドラッグ中でないクリックのみ反応させるため、onclickを使用
+            slotDiv.onclick = (e) => {
+                // ドラッグ終了直後のクリック発火を防ぐなどの制御も考えられるが、
+                // 基本的にはこれでOK
+                openAssignModal(index);
+            };
+
             pitch.appendChild(slotDiv);
         });
     }
@@ -476,34 +527,29 @@
             if (p.slotIndex !== null) {
                 const slotDiv = document.getElementById('slot-' + p.slotIndex);
                 if (slotDiv) {
-                    updateSlotAppearance(slotDiv, p);
+                    const mainPos = p.pos[0];
+                    const bgColor = mainPos === 'GK' ? '#FFC107' : (mainPos === 'DF' ? '#2196F3' : (mainPos === 'MF' ? '#4CAF50' : '#E91E63'));
+                    const textColor = mainPos === 'GK' ? '#000' : '#FFF';
+
+                    slotDiv.style.background = bgColor; 
+                    slotDiv.style.color = textColor;
+                    slotDiv.style.border = "2px solid white";
+                    slotDiv.innerHTML = `${p.nick}<div class="name-tooltip">${p.name}</div>`;
+                    
+                    slotDiv.draggable = true;
+                    slotDiv.ondragstart = (evt) => dragStart(evt, p.id);
+                    slotDiv.ontouchstart = (evt) => dragStart(evt, p.id);
+                    
+                    // 既に選手がいる場合も、クリックでモーダルを開く（入替・解除のため）
+                    slotDiv.onclick = (e) => {
+                        e.stopPropagation(); // 親要素への伝播を防ぐ
+                        openAssignModal(p.slotIndex);
+                    };
                 } else {
-                    p.slotIndex = null; // Slot no longer exists
+                    p.slotIndex = null;
                 }
             }
         });
-    }
-
-    function updateSlotAppearance(slotDiv, player) {
-        // 色分けロジック: 最初のポジションを使用
-        const mainPos = player.pos[0];
-        const bgColor = mainPos === 'GK' ? '#FFC107' : (mainPos === 'DF' ? '#2196F3' : (mainPos === 'MF' ? '#4CAF50' : '#E91E63'));
-        const textColor = mainPos === 'GK' ? '#000' : '#FFF';
-
-        slotDiv.style.background = bgColor; 
-        slotDiv.style.color = textColor;
-        slotDiv.style.border = "2px solid white";
-        
-        // 複数ポジションがある場合、下に小さく表示するなどの工夫も可能だが、
-        // スペースがないのでツールチップに詳細、表示はニックネームとメインPos色で表現
-        slotDiv.innerHTML = `
-            ${player.nick}
-            <div class="name-tooltip">${player.name} (${player.pos.join('/')})</div>
-        `;
-        
-        slotDiv.draggable = true;
-        slotDiv.ondragstart = (evt) => dragStart(evt, player.id);
-        slotDiv.ontouchstart = (evt) => dragStart(evt, player.id);
     }
 
     // --- ドラッグ＆ドロップ ---
@@ -511,23 +557,16 @@
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", playerId);
     }
-    function allowDrop(e) {
-        e.preventDefault();
-        if(e.target.classList.contains('field-player')){ e.target.classList.add('drag-over'); }
-    }
-    function dragLeave(e) {
-         if(e.target.classList.contains('field-player')){ e.target.classList.remove('drag-over'); }
-    }
+    function allowDrop(e) { e.preventDefault(); if(e.target.classList.contains('field-player')){ e.target.classList.add('drag-over'); } }
+    function dragLeave(e) { if(e.target.classList.contains('field-player')){ e.target.classList.remove('drag-over'); } }
     function dropToField(e, slotIndex) {
-        e.preventDefault();
+        e.preventDefault(); e.stopPropagation(); // クリックイベントとの干渉防止
         e.target.classList.remove('drag-over');
         const playerId = e.dataTransfer.getData("text/plain");
         const player = appState.players.find(p => p.id === playerId);
         if (!player) return;
-
         const existingPlayer = appState.players.find(p => p.slotIndex === slotIndex && p.id !== playerId);
-        if (existingPlayer) existingPlayer.slotIndex = null; // Swap out
-
+        if (existingPlayer) existingPlayer.slotIndex = null;
         player.slotIndex = slotIndex;
         renderApp(); saveData();
     }
@@ -547,22 +586,14 @@
         const btn = document.querySelector('.btn-save-img');
         const originalText = btn.textContent;
         btn.disabled = true; btn.textContent = "生成中...";
-
-        html2canvas(captureArea, {
-            scale: 2, backgroundColor: "#e0e0e0", logging: false, useCORS: true
-        }).then(canvas => {
+        html2canvas(captureArea, { scale: 2, backgroundColor: "#e0e0e0", logging: false, useCORS: true }).then(canvas => {
             const link = document.createElement('a');
             link.download = `formation_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
             btn.disabled = false; btn.textContent = originalText;
-        }).catch(err => {
-            console.error(err);
-            alert("保存エラー");
-            btn.disabled = false; btn.textContent = originalText;
-        });
+        }).catch(err => { console.error(err); alert("保存エラー"); btn.disabled = false; btn.textContent = originalText; });
     }
-
 </script>
 </body>
 </html>
