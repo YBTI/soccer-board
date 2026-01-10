@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>サッカーポジションプロッター Pro v4</title>
+    <title>サッカーポジションプロッター Pro v6</title>
     <script src="https://Bernardo-Castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -140,7 +140,15 @@
             padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
         .select-item:hover { background-color: #f5f5f5; }
-        .select-item.selected { background-color: #e3f2fd; }
+
+        /* カスタム設定用 */
+        .custom-row {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 5px 0; border-bottom: 1px solid #eee;
+        }
+        .custom-row label { margin: 0; flex: 1; }
+        .custom-row input { width: 60px; text-align: center; }
+        .counter-box { font-size: 0.9rem; text-align: right; color: #666; margin-bottom: 10px;}
+        .counter-box span { font-weight: bold; color: var(--accent); }
 
     </style>
 </head>
@@ -155,15 +163,17 @@
             <h3>設定</h3>
             <div style="display: flex; gap:10px;">
                 <div style="flex:1">
-                    <label>人数</label>
+                    <label>人数制</label>
                     <select id="teamSizeSelector" onchange="handleSizeChange()">
                         <option value="8">8人制</option>
                         <option value="11" selected>11人制</option>
+                        <option value="custom">🛠 カスタム (人数自由)</option>
                     </select>
                 </div>
                 <div style="flex:2">
                     <label>フォーメーション</label>
-                    <select id="formationSelector" onchange="handleFormationChange()"></select>
+                    <select id="formationSelector" onchange="handleFormationChange()">
+                        </select>
                 </div>
             </div>
             <small id="formationDesc" style="color: #666; font-size: 0.75rem; display:block; margin-top:5px; margin-bottom:10px;"></small>
@@ -232,12 +242,55 @@
         <div class="modal">
             <h3>選手を選択</h3>
             <p style="text-align:center; font-size:0.8rem; color:#666;">配置する選手を選んでください</p>
-            
-            <div id="assignList" class="select-list">
-                </div>
-
+            <div id="assignList" class="select-list"></div>
             <div class="modal-buttons" style="flex-direction: column;">
                 <button class="btn-cancel" onclick="closeAssignModal()">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal">
+            <h3>カスタム配置設定</h3>
+            <p style="text-align:center; font-size:0.85rem; color:#666; margin-bottom:15px;">人数を選択し、各ポジションに割り振ってください。</p>
+
+            <div class="form-group">
+                <label>フィールド人数 (合計)</label>
+                <select id="customTotal" onchange="updateCustomCounter()">
+                    <option value="5">5人制</option>
+                    <option value="6">6人制</option>
+                    <option value="7">7人制</option>
+                    <option value="8">8人制</option>
+                    <option value="9">9人制</option>
+                    <option value="10">10人制</option>
+                    <option value="11" selected>11人制</option>
+                </select>
+            </div>
+
+            <div class="custom-row">
+                <label>GK (ゴールキーパー)</label>
+                <input type="number" value="1" disabled style="background:#eee; font-weight:bold;">
+            </div>
+            <div class="custom-row">
+                <label>DF (ディフェンダー)</label>
+                <input type="number" id="customDF" value="4" min="0" max="5" onchange="updateCustomCounter()">
+            </div>
+            <div class="custom-row">
+                <label>MF (ミッドフィルダー)</label>
+                <input type="number" id="customMF" value="4" min="0" max="5" onchange="updateCustomCounter()">
+            </div>
+            <div class="custom-row">
+                <label>FW (フォワード)</label>
+                <input type="number" id="customFW" value="2" min="0" max="5" onchange="updateCustomCounter()">
+            </div>
+
+            <div class="counter-box" id="customCounterDisplay">
+                現在: <span>11</span> / 目標: <span>11</span>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeCustomModal()">キャンセル</button>
+                <button onclick="applyCustomFormation()">決定・プロット</button>
             </div>
         </div>
     </div>
@@ -257,21 +310,27 @@
             "4-2-3-1": { name: "4-2-3-1", desc: "起点を作る。", slots: [{x:50,y:92,r:"GK"},{x:12,y:78,r:"SB"},{x:36,y:82,r:"CB"},{x:64,y:82,r:"CB"},{x:88,y:78,r:"SB"},{x:38,y:62,r:"DMF"},{x:62,y:62,r:"DMF"},{x:15,y:38,r:"SH"},{x:50,y:38,r:"OH"},{x:85,y:38,r:"SH"},{x:50,y:18,r:"CF"}]},
             "3-5-2": { name: "3-5-2", desc: "中盤支配。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:8,y:50,r:"WB"},{x:35,y:58,r:"DMF"},{x:65,y:58,r:"DMF"},{x:92,y:50,r:"WB"},{x:50,y:40,r:"OMF"},{x:35,y:20,r:"FW"},{x:65,y:20,r:"FW"}]},
             "3-4-3": { name: "3-4-3", desc: "攻撃的3バック。", slots: [{x:50,y:92,r:"GK"},{x:20,y:80,r:"CB"},{x:50,y:84,r:"CB"},{x:80,y:80,r:"CB"},{x:12,y:50,r:"WB"},{x:40,y:58,r:"CH"},{x:60,y:58,r:"CH"},{x:88,y:50,r:"WB"},{x:20,y:22,r:"WG"},{x:50,y:18,r:"CF"},{x:80,y:22,r:"WG"}]},
-            "4-1-4-1": { name: "4-1-4-1", desc: "アンカー配置。", slots: [{x:50,y:92,r:"GK"},{x:10,y:75,r:"SB"},{x:35,y:80,r:"CB"},{x:65,y:80,r:"CB"},{x:90,y:75,r:"SB"},{x:50,y:65,r:"DMF"},{x:15,y:40,r:"SH"},{x:35,y:45,r:"IH"},{x:65,y:45,r:"IH"},{x:85,y:40,r:"SH"},{x:50,y:15,r:"CF"}]}
         }
     };
 
     let appState = {
         players: [],
         teamSize: "11",
-        formationKey: "4-4-2"
+        formationKey: "4-4-2",
+        customConfig: null // カスタム設定保持用
     };
-    const STORAGE_KEY = 'soccerPlotterData_v2';
+    const STORAGE_KEY = 'soccerPlotterData_v6';
     let editingPlayerId = null;
-    let targetSlotIndex = null; // タップ配置用
+    let targetSlotIndex = null;
+    let previousTeamSize = "11"; // キャンセル時の復帰用
 
     window.onload = function() {
         loadData();
+        // 初期描画
+        const sizeVal = appState.teamSize === 'custom' ? 'custom' : appState.teamSize;
+        document.getElementById('teamSizeSelector').value = sizeVal;
+        previousTeamSize = sizeVal;
+        
         updateFormationOptions(false);
         renderApp();
     };
@@ -284,11 +343,11 @@
                 const parsed = JSON.parse(data);
                 appState.teamSize = parsed.teamSize || "11";
                 appState.formationKey = parsed.formationKey || "4-4-2";
+                appState.customConfig = parsed.customConfig || null;
                 appState.players = (parsed.players || []).map(p => {
                     if (typeof p.pos === 'string') return { ...p, pos: [p.pos] };
                     return p;
                 });
-                document.getElementById('teamSizeSelector').value = appState.teamSize;
             } catch (e) { console.error(e); }
         }
     }
@@ -301,32 +360,147 @@
 
     // --- 設定変更 ---
     function handleSizeChange() {
-        appState.teamSize = document.getElementById('teamSizeSelector').value;
-        updateFormationOptions(true);
+        const val = document.getElementById('teamSizeSelector').value;
+        if (val === 'custom') {
+            openCustomModal();
+        } else {
+            previousTeamSize = val; // 更新
+            appState.teamSize = val;
+            
+            // サイズ変更時のデフォルトフォーメーションを選択
+            const options = formations[val];
+            const firstKey = Object.keys(options)[0];
+            appState.formationKey = firstKey;
+            
+            appState.customConfig = null; // カスタム設定クリア
+            updateFormationOptions(true);
+        }
     }
+    
     function handleFormationChange() {
-        appState.formationKey = document.getElementById('formationSelector').value;
-        renderApp(); saveData();
+        const val = document.getElementById('formationSelector').value;
+        appState.formationKey = val;
+        renderApp(); 
+        saveData();
     }
+
     function updateFormationOptions(shouldRender) {
-        const size = appState.teamSize;
         const selector = document.getElementById('formationSelector');
         selector.innerHTML = "";
-        const options = formations[size];
-        let firstKey = null;
-        for (const key in options) {
-            if(!firstKey) firstKey = key;
+        
+        // カスタムモードの場合
+        if (appState.teamSize === 'custom' && appState.customConfig) {
+            const {df, mf, fw} = appState.customConfig;
             const opt = document.createElement('option');
-            opt.value = key; opt.textContent = options[key].name;
-            if(key === appState.formationKey) opt.selected = true;
+            opt.value = 'custom_result';
+            opt.textContent = `カスタム (${df}-${mf}-${fw})`;
+            opt.selected = true;
             selector.appendChild(opt);
+        } else {
+            // 通常モード (8 or 11)
+            // もし何らかの理由でcustom設定が残っていたら安全策で11人制のオプションを表示
+            const size = (appState.teamSize === 'custom') ? "11" : appState.teamSize;
+            const options = formations[size];
+            
+            let firstKey = null;
+            for (const key in options) {
+                if(!firstKey) firstKey = key;
+                const opt = document.createElement('option');
+                opt.value = key; opt.textContent = options[key].name;
+                if(key === appState.formationKey) opt.selected = true;
+                selector.appendChild(opt);
+            }
+            // 選択中のキーが存在しない場合（サイズ変更直後など）、先頭を選択
+            if(!options[appState.formationKey]){
+                appState.formationKey = firstKey;
+                if(selector.options.length > 0) selector.options[0].selected = true;
+            }
         }
-        if(!options[appState.formationKey]){
-            appState.formationKey = firstKey;
-             if(selector.options.length > 0) selector.options[0].selected = true;
+
+        if(shouldRender) { 
+            renderApp(); saveData(); 
         }
-        if(shouldRender) { renderApp(); saveData(); }
     }
+
+    // --- カスタム設定モーダル ---
+    function openCustomModal() {
+        // 現在のカスタム人数またはデフォルト(11)をセット
+        const initialTotal = (appState.teamSize === 'custom' && appState.customConfig) 
+            ? (1 + appState.customConfig.df + appState.customConfig.mf + appState.customConfig.fw) 
+            : 11;
+            
+        document.getElementById('customTotal').value = initialTotal;
+        updateCustomCounter();
+        document.getElementById('customModal').style.display = 'flex';
+    }
+    
+    function closeCustomModal() {
+        document.getElementById('customModal').style.display = 'none';
+        
+        // もし「カスタム」を選択したが設定せずに閉じた場合、前の選択に戻す
+        if (appState.teamSize !== 'custom' && document.getElementById('teamSizeSelector').value === 'custom') {
+            document.getElementById('teamSizeSelector').value = previousTeamSize;
+        }
+    }
+
+    function updateCustomCounter() {
+        const total = parseInt(document.getElementById('customTotal').value);
+        const df = parseInt(document.getElementById('customDF').value) || 0;
+        const mf = parseInt(document.getElementById('customMF').value) || 0;
+        const fw = parseInt(document.getElementById('customFW').value) || 0;
+        const gk = 1;
+        
+        const currentTotal = gk + df + mf + fw;
+        
+        const display = document.getElementById('customCounterDisplay');
+        display.innerHTML = `現在: <span style="color:${currentTotal === total ? 'green' : 'red'}">${currentTotal}</span> / 目標: <span>${total}</span>`;
+    }
+
+    function applyCustomFormation() {
+        const total = parseInt(document.getElementById('customTotal').value);
+        const df = parseInt(document.getElementById('customDF').value) || 0;
+        const mf = parseInt(document.getElementById('customMF').value) || 0;
+        const fw = parseInt(document.getElementById('customFW').value) || 0;
+        const gk = 1;
+
+        if ((gk + df + mf + fw) !== total) {
+            alert(`人数の合計が合いません。\n目標: ${total}人\n現在: ${gk+df+mf+fw}人`);
+            return;
+        }
+
+        // 設定保存
+        appState.teamSize = 'custom';
+        appState.customConfig = { df, mf, fw };
+        appState.formationKey = 'custom_result';
+        
+        // UI更新
+        document.getElementById('teamSizeSelector').value = 'custom';
+        previousTeamSize = 'custom';
+
+        closeCustomModal();
+        updateFormationOptions(true); // これがフォーメーション表示を更新し、描画も呼ぶ
+    }
+
+    function generateCustomSlots(config) {
+        const slots = [];
+        // GK
+        slots.push({x: 50, y: 92, r: "GK"});
+        
+        const addRow = (count, y, role) => {
+            if (count <= 0) return;
+            const step = 100 / (count + 1);
+            for (let i = 1; i <= count; i++) {
+                slots.push({x: step * i, y: y, r: role});
+            }
+        };
+
+        addRow(config.df, 75, "DF");
+        addRow(config.mf, 50, "MF");
+        addRow(config.fw, 20, "FW");
+
+        return slots;
+    }
+
 
     // --- 選手操作 ---
     function addPlayer() {
@@ -393,27 +567,22 @@
         }
     }
 
-    // --- 配置選択モーダル（新機能） ---
+    // --- 配置選択モーダル ---
     function openAssignModal(slotIndex) {
         targetSlotIndex = slotIndex;
         const list = document.getElementById('assignList');
         list.innerHTML = "";
 
-        // このスロットに現在配置されている選手
         const currentPlayer = appState.players.find(p => p.slotIndex === slotIndex);
         if (currentPlayer) {
             const div = document.createElement('div');
             div.className = 'select-item';
             div.style.background = '#ffebee';
-            div.innerHTML = `
-                <span><span style="font-weight:bold">${currentPlayer.name}</span> を外す</span>
-                <span style="font-size:0.8rem">✕</span>
-            `;
-            div.onclick = () => { assignPlayerToSlot(null); }; // nullで外す
+            div.innerHTML = `<span><span style="font-weight:bold">${currentPlayer.name}</span> を外す</span><span>✕</span>`;
+            div.onclick = () => { assignPlayerToSlot(null); };
             list.appendChild(div);
         }
 
-        // ベンチの選手一覧
         const benchPlayers = appState.players.filter(p => p.slotIndex === null);
         if (benchPlayers.length === 0) {
             list.innerHTML += `<div style="padding:10px; color:#999; text-align:center;">ベンチに選手がいません</div>`;
@@ -422,10 +591,7 @@
         benchPlayers.forEach(p => {
             const div = document.createElement('div');
             div.className = 'select-item';
-            div.innerHTML = `
-                <span>${p.name} <small>(${p.pos.join('/')})</small></span>
-                <button class="btn-edit" style="margin:0">選択</button>
-            `;
+            div.innerHTML = `<span>${p.name} <small>(${p.pos.join('/')})</small></span><button class="btn-edit" style="margin:0">選択</button>`;
             div.onclick = () => { assignPlayerToSlot(p.id); };
             list.appendChild(div);
         });
@@ -440,22 +606,14 @@
 
     function assignPlayerToSlot(playerId) {
         if (targetSlotIndex === null) return;
-
-        // 1. まずそのスロットを空にする
         const existing = appState.players.find(p => p.slotIndex === targetSlotIndex);
         if (existing) existing.slotIndex = null;
-
-        // 2. 選手を配置（nullなら外すだけ）
         if (playerId) {
             const player = appState.players.find(p => p.id === playerId);
             if (player) player.slotIndex = targetSlotIndex;
         }
-
-        renderApp();
-        saveData();
-        closeAssignModal();
+        renderApp(); saveData(); closeAssignModal();
     }
-
 
     // --- 描画 ---
     function renderApp() {
@@ -488,35 +646,55 @@
     }
 
     function renderFormationSlots() {
-        const config = formations[appState.teamSize][appState.formationKey];
         const pitch = document.getElementById('pitch');
-        document.getElementById('formationDesc').textContent = config.desc;
-        document.getElementById('onImageFormationName').textContent = config.name;
+        let slots = [];
+        let desc = "";
+        let name = "";
+
+        // カスタムか通常かで分岐
+        if (appState.teamSize === 'custom' && appState.customConfig) {
+            slots = generateCustomSlots(appState.customConfig);
+            const {df, mf, fw} = appState.customConfig;
+            const total = 1 + df + mf + fw;
+            name = `カスタム (${df}-${mf}-${fw})`;
+            desc = `${total}人制 / GK:1 DF:${df} MF:${mf} FW:${fw}`;
+        } else {
+            // 通常フォーメーション
+            // データ不整合防止の安全策
+            const size = (appState.teamSize === 'custom') ? "11" : appState.teamSize; 
+            const formList = formations[size] || formations["11"];
+            const config = formList[appState.formationKey] || formList[Object.keys(formList)[0]];
+            slots = config.slots;
+            name = config.name;
+            desc = config.desc;
+        }
+
+        document.getElementById('formationDesc').textContent = desc;
+        document.getElementById('onImageFormationName').textContent = name;
 
         pitch.innerHTML = `
             <div class="penalty-area-top"></div><div class="goal-area-top"></div>
             <div class="penalty-area-bottom"></div><div class="goal-area-bottom"></div>
         `;
+        
+        // スロット数オーバーの選手をリセット
+        appState.players.forEach(p => {
+            if (p.slotIndex !== null && p.slotIndex >= slots.length) {
+                p.slotIndex = null;
+            }
+        });
 
-        config.slots.forEach((slot, index) => {
+        slots.forEach((slot, index) => {
             const slotDiv = document.createElement('div');
             slotDiv.className = 'field-player';
             slotDiv.id = 'slot-' + index;
             slotDiv.style.left = slot.x + '%'; slotDiv.style.top = slot.y + '%';
             slotDiv.innerHTML = `<span style="opacity:0.3">${slot.r}</span>`;
             
-            // ドラッグドロップ用
             slotDiv.ondragover = allowDrop;
             slotDiv.ondragleave = dragLeave;
             slotDiv.ondrop = (e) => dropToField(e, index);
-            
-            // ★タップ配置用（ここが新機能）
-            // ドラッグ中でないクリックのみ反応させるため、onclickを使用
-            slotDiv.onclick = (e) => {
-                // ドラッグ終了直後のクリック発火を防ぐなどの制御も考えられるが、
-                // 基本的にはこれでOK
-                openAssignModal(index);
-            };
+            slotDiv.onclick = (e) => { openAssignModal(index); };
 
             pitch.appendChild(slotDiv);
         });
@@ -530,21 +708,14 @@
                     const mainPos = p.pos[0];
                     const bgColor = mainPos === 'GK' ? '#FFC107' : (mainPos === 'DF' ? '#2196F3' : (mainPos === 'MF' ? '#4CAF50' : '#E91E63'));
                     const textColor = mainPos === 'GK' ? '#000' : '#FFF';
-
                     slotDiv.style.background = bgColor; 
                     slotDiv.style.color = textColor;
                     slotDiv.style.border = "2px solid white";
                     slotDiv.innerHTML = `${p.nick}<div class="name-tooltip">${p.name}</div>`;
-                    
                     slotDiv.draggable = true;
                     slotDiv.ondragstart = (evt) => dragStart(evt, p.id);
                     slotDiv.ontouchstart = (evt) => dragStart(evt, p.id);
-                    
-                    // 既に選手がいる場合も、クリックでモーダルを開く（入替・解除のため）
-                    slotDiv.onclick = (e) => {
-                        e.stopPropagation(); // 親要素への伝播を防ぐ
-                        openAssignModal(p.slotIndex);
-                    };
+                    slotDiv.onclick = (e) => { e.stopPropagation(); openAssignModal(p.slotIndex); };
                 } else {
                     p.slotIndex = null;
                 }
@@ -553,14 +724,11 @@
     }
 
     // --- ドラッグ＆ドロップ ---
-    function dragStart(e, playerId) {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", playerId);
-    }
+    function dragStart(e, playerId) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", playerId); }
     function allowDrop(e) { e.preventDefault(); if(e.target.classList.contains('field-player')){ e.target.classList.add('drag-over'); } }
     function dragLeave(e) { if(e.target.classList.contains('field-player')){ e.target.classList.remove('drag-over'); } }
     function dropToField(e, slotIndex) {
-        e.preventDefault(); e.stopPropagation(); // クリックイベントとの干渉防止
+        e.preventDefault(); e.stopPropagation();
         e.target.classList.remove('drag-over');
         const playerId = e.dataTransfer.getData("text/plain");
         const player = appState.players.find(p => p.id === playerId);
